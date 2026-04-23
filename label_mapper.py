@@ -26,9 +26,8 @@
 #       cancer = 0 → NOT_WORTH_SECOND_LOOK
 #
 #   VinDr-Mammo (BI-RADS-based):
-#       BI-RADS 1–2 → NOT_WORTH_SECOND_LOOK
-#       BI-RADS 3–6 → WORTH_SECOND_LOOK
-#       (BI-RADS 3 included to prioritize sensitivity)
+#       BI-RADS 4–5 → WORTH_SECOND_LOOK
+#       BI-RADS 0–3, 6 → NOT_WORTH_SECOND_LOOK
 
 # Safety note:
 #   Unknown labels raise ValueError rather than defaulting silently.
@@ -99,8 +98,8 @@ def map_vindr(birads) -> Label:
     """
     Map BI-RADS (e.g. 'BI-RADS 3') to Label.
 
-    BI-RADS ≥ 3 → WORTH_SECOND_LOOK
-    BI-RADS ≤ 2 → NOT_WORTH_SECOND_LOOK
+    BI-RADS 4–5 → WORTH_SECOND_LOOK
+    BI-RADS 0–3, 6 → NOT_WORTH_SECOND_LOOK
     """
     # Handle string format like "BI-RADS 4"
     if isinstance(birads, str):
@@ -113,8 +112,11 @@ def map_vindr(birads) -> Label:
     if birads < 0 or birads > 6:
         raise ValueError(f"Invalid BI-RADS value: {birads}. Expected 0–6.")
 
-    # Decision threshold (>=3)
-    return Label.WORTH_SECOND_LOOK if birads >= 3 else Label.NOT_WORTH_SECOND_LOOK
+    # Only 4 and 5 are considered actionable
+    if birads in (4, 5):
+        return Label.WORTH_SECOND_LOOK
+
+    return Label.NOT_WORTH_SECOND_LOOK
 
 
 def map_dataset(dataset: str, value) -> Label:
